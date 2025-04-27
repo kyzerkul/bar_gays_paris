@@ -1,0 +1,4 @@
+name,site,subtypes,category,type,phone,full_address,street,postal_code,latitude,longitude,rating,description
+"Puzzle","","Bar","bars","Bar","+33 9 74 73 58 73","267 Rue Saint-Jacques, 75005 Paris","267 Rue Saint-Jacques","75005","48.8416782","2.3413917","4.9","Petit bar de style décontracté avec terrasse"
+"Oculto","https://www.ocultoparis.fr/","Bar à cocktails, Bar, Bar à bières, Café","bars","Bar à cocktails","+33 9 74 73 56 57","27 R. Quincampoix, 75004 Paris","27 R. Quincampoix","75004","48.8601044","2.3500175","4.4","Restaurant tendance préparant des cocktails classiques et maison"
+"Les Marronniers","https://wiicmenu-qrcode.com/app/offre.php?r=1336","Bar, Restaurant","restaurants","Bar","+33 1 40 27 87 72","18 Rue des Archives, 75004 Paris","18 Rue des Archives","75004","48.8578041","2.3548878","4.2","Brasserie aux couleurs vives et à l'ambiance rétro"
