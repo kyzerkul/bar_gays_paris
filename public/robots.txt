@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://bars-gay-paris.fr
+Host: https://barsgayparis.com
 
 # Sitemaps
-Sitemap: https://bars-gay-paris.fr/sitemap.xml
+Sitemap: https://barsgayparis.com/sitemap.xml
