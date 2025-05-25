@@ -1,14 +1,11 @@
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalider toutes les heures
 
 export async function GET() {
   try {
-    // Créer un client Supabase
-    const supabase = createClient();
     
     // Récupérer tous les bars
     const { data: bars, error: barsError } = await supabase
@@ -34,10 +31,8 @@ export async function GET() {
     
     if (quartiersError) throw quartiersError;
 
-    // Base URL à partir des headers
-    const host = headers().get('host') || 'barsgayparis.com';
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
+    // Base URL fixe pour éviter les problèmes avec headers()
+    const baseUrl = 'https://barsgayparis.com';
     
     // Liste de toutes les URLs statiques
     const staticUrls = [
