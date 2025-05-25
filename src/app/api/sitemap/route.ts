@@ -6,30 +6,35 @@ export const revalidate = 3600; // Revalider toutes les heures
 
 export async function GET() {
   try {
-    
     // Récupérer tous les bars
     const { data: bars, error: barsError } = await supabase
       .from('bars')
-      .select('slug, updated_at')
+      .select('slug, updated_at, postal_code, subtypes')
       .order('id');
     
     if (barsError) throw barsError;
     
-    // Récupérer tous les types
-    const { data: types, error: typesError } = await supabase
-      .from('types')
-      .select('slug')
-      .order('id');
+    // Extraire les quartiers uniques
+    const quartiersSet = new Set<string>();
+    bars.forEach(bar => {
+      if (bar.postal_code) {
+        const codeQuartier = bar.postal_code.substring(0, 5);
+        if (codeQuartier && codeQuartier.startsWith('75')) {
+          quartiersSet.add(codeQuartier);
+        }
+      }
+    });
     
-    if (typesError) throw typesError;
-    
-    // Récupérer tous les quartiers
-    const { data: quartiers, error: quartiersError } = await supabase
-      .from('quartiers')
-      .select('code')
-      .order('id');
-    
-    if (quartiersError) throw quartiersError;
+    // Extraire les types uniques
+    const typesSet = new Set<string>();
+    bars.forEach(bar => {
+      if (bar.subtypes) {
+        const typesList = bar.subtypes.split(',').map((t: string) => t.trim());
+        typesList.forEach((type: string) => {
+          if (type) typesSet.add(type.toLowerCase());
+        });
+      }
+    });
 
     // Base URL fixe pour éviter les problèmes avec headers()
     const baseUrl = 'https://barsgayparis.com';
@@ -46,8 +51,8 @@ export async function GET() {
     
     // Générer les URLs de pages dynamiques
     const barUrls = bars.map(bar => `/bars/${bar.slug}`);
-    const typeUrls = types.map(type => `/types/${type.slug}`);
-    const quartierUrls = quartiers.map(quartier => `/quartiers/${quartier.code}`);
+    const typeUrls = Array.from(typesSet).map(type => `/types/${encodeURIComponent(type)}`);
+    const quartierUrls = Array.from(quartiersSet).map(quartier => `/quartiers/${quartier}`);
     
     // Combiner toutes les URLs
     const allUrls = [
