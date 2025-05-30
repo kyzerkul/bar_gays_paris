@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ClarityAnalytics from "@/components/analytics/ClarityAnalytics";
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -53,6 +54,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={inter.variable}>
+      <ClarityAnalytics />
       <body className="min-h-screen bg-bg-dark text-text-light font-sans">
         <header className="sticky top-0 z-50 w-full">
           {/* Nous créerons un composant Header ultérieurement */}
