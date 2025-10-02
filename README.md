@@ -96,6 +96,18 @@ yarn import-data
 2. Utilisez le fichier `supabase/schema.sql` pour initialiser la structure de la base de données
 3. Configurez les variables d'environnement comme indiqué ci-dessus
 
+### Stockage d'images du blog
+
+Pour activer l'upload d'images depuis l'admin du blog (`/admin/blog/new`) :
+
+1. Créez un bucket public dans Storage nommé `blog-images` (Public bucket activé)
+2. Connectez-vous en admin via `/admin/login` (Supabase Auth email/mot de passe)
+3. Lors de l'upload, l'URL publique est générée automatiquement et stockée dans l'article
+
+Remarques SEO :
+- Renseignez le champ "Texte alternatif (alt)" pour chaque image
+- Utilisez des titres H2/H3 et des paragraphes pertinents
+
 ## Déploiement
 
 L'application peut facilement être déployée sur Vercel, Netlify ou tout autre service de déploiement supportant Next.js :

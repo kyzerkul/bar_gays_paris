@@ -175,3 +175,57 @@ EXECUTE FUNCTION update_bar_rating();
 -- Commentaire final
 COMMENT ON TABLE public.bars IS 'Table principale stockant les informations sur les bars gay de Paris';
 COMMENT ON TABLE public.reviews IS 'Avis et commentaires des utilisateurs sur les bars';
+
+-- =============================================
+-- Blog: table des articles
+-- =============================================
+CREATE TABLE IF NOT EXISTS public.posts (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  excerpt TEXT,
+  content_html TEXT,
+  content_json JSONB, -- contenu riche (éditeur)
+  cover_image_url TEXT,
+  cover_image_alt TEXT,
+  seo_title TEXT,
+  seo_description TEXT,
+  published BOOLEAN DEFAULT false,
+  published_at TIMESTAMP WITH TIME ZONE,
+  author_id UUID, -- référence optionnelle à auth.users
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index utiles
+CREATE INDEX IF NOT EXISTS idx_posts_slug ON public.posts (slug);
+CREATE INDEX IF NOT EXISTS idx_posts_published ON public.posts (published, published_at);
+
+-- Trigger updated_at
+CREATE TRIGGER set_posts_updated_at
+BEFORE UPDATE ON public.posts
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS pour posts
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+
+-- Lecture publique des articles publiés
+CREATE POLICY "Lire articles publiés" ON public.posts
+FOR SELECT
+USING (published = true);
+
+-- Lecture complète pour les utilisateurs authentifiés (admin/editor)
+CREATE POLICY "Lire articles (auth)" ON public.posts
+FOR SELECT
+TO authenticated
+USING (true);
+
+-- Écriture réservée aux utilisateurs authentifiés
+CREATE POLICY "Ecrire articles (auth)" ON public.posts
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+COMMENT ON TABLE public.posts IS 'Articles du blog (SEO, contenu riche, publication)';

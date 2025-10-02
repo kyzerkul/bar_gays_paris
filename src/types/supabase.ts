@@ -140,6 +140,60 @@ export interface Database {
           updated_at?: string
         }
       }
+      ,
+      posts: {
+        Row: {
+          id: number
+          title: string
+          slug: string
+          excerpt?: string | null
+          content_html?: string | null
+          content_json?: Json | null
+          cover_image_url?: string | null
+          cover_image_alt?: string | null
+          seo_title?: string | null
+          seo_description?: string | null
+          published?: boolean | null
+          published_at?: string | null
+          author_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Insert: {
+          id?: number
+          title: string
+          slug: string
+          excerpt?: string | null
+          content_html?: string | null
+          content_json?: Json | null
+          cover_image_url?: string | null
+          cover_image_alt?: string | null
+          seo_title?: string | null
+          seo_description?: string | null
+          published?: boolean | null
+          published_at?: string | null
+          author_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: number
+          title?: string
+          slug?: string
+          excerpt?: string | null
+          content_html?: string | null
+          content_json?: Json | null
+          cover_image_url?: string | null
+          cover_image_alt?: string | null
+          seo_title?: string | null
+          seo_description?: string | null
+          published?: boolean | null
+          published_at?: string | null
+          author_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { clarity } from '@microsoft/clarity';
+import clarity from '@microsoft/clarity';
 
 // L'ID de projet Clarity défini directement ici pour garantir le fonctionnement
 // Dans un environnement de production, vous devriez utiliser une variable d'environnement
