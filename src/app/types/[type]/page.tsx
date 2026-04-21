@@ -10,22 +10,25 @@ import { notFound } from 'next/navigation';
 // Génération des métadonnées dynamiques pour le référencement
 export async function generateMetadata({ params }: { params: { type: string } }) {
   const decodedType = decodeURIComponent(params.type);
-  
-  // Vérifier si le type existe
-  const types = await getTypes();
-  const typeExists = types.some(t => t.id === params.type);
-  
-  if (!typeExists) {
+  try {
+    const types = await getTypes();
+    const typeExists = types.some(t => t.id === params.type);
+    if (!typeExists) {
+      return {
+        title: "Type non trouvé | Bars Gay Paris",
+        description: "Ce type d'établissement n'existe pas dans notre annuaire des bars gay de Paris."
+      };
+    }
     return {
-      title: "Type non trouvé | Bars Gay Paris",
-      description: "Ce type d'établissement n'existe pas dans notre annuaire des bars gay de Paris."
+      title: `Bars gay ${decodedType} à Paris | Guide LGBT+`,
+      description: `Découvrez les meilleurs établissements ${decodedType} gay et LGBT+ à Paris. Guide complet avec adresses, horaires et ambiances.`
+    };
+  } catch {
+    return {
+      title: "Bars Gay Paris",
+      description: "Annuaire des établissements LGBT+ à Paris."
     };
   }
-  
-  return {
-    title: `Bars gay ${decodedType} à Paris | Guide LGBT+`,
-    description: `Découvrez les meilleurs établissements ${decodedType} gay et LGBT+ à Paris. Guide complet avec adresses, horaires et ambiances.`
-  };
 }
 
 // Types pour la pagination
@@ -39,28 +42,35 @@ type PageProps = {
 };
 
 export default async function TypePage({ params, searchParams = {} }: PageProps) {
-  // Récupération du type à partir de l'URL et décodage
   const { type: encodedType } = params;
   const type = decodeURIComponent(encodedType);
-  
-  // Vérifier si le type existe
-  const types = await getTypes();
+
+  let types = [];
+  try {
+    types = await getTypes();
+  } catch {
+    notFound();
+  }
   const typeExists = types.some(t => t.id === type);
-  
   if (!typeExists) {
     notFound();
   }
-  
+
   // Récupération des paramètres pour la pagination
   const currentPage = Number(searchParams.page) || 1;
   const pageSize = 12;
   const skip = (currentPage - 1) * pageSize;
-  
+
   // Récupération des bars pour ce type
-  const allBars = await getBars({
-    type,
-    limite: 1000 // Limite élevée pour récupérer tous les bars
-  });
+  let allBars = [];
+  try {
+    allBars = await getBars({
+      type,
+      limite: 1000
+    });
+  } catch {
+    allBars = [];
+  }
   
   // Récupérer seulement les bars pour la page actuelle
   const barsForCurrentPage = allBars.slice(skip, skip + pageSize);

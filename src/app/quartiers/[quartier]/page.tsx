@@ -18,48 +18,62 @@ interface QuartierPageProps {
 // Générer les métadonnées de la page
 export async function generateMetadata({ params }: QuartierPageProps) {
   const { quartier: quartierId } = params;
-  
-  // Trouver le quartier correspondant
-  const quartiers = await getQuartiers();
-  const quartier = quartiers.find(q => q.id === quartierId);
-  
-  if (!quartier) {
+  try {
+    const quartiers = await getQuartiers();
+    const quartier = quartiers.find(q => q.id === quartierId);
+    if (!quartier) {
+      return {
+        title: "Quartier non trouvé | Bars Gay Paris",
+        description: "Ce quartier n'existe pas dans notre annuaire des bars gay de Paris."
+      };
+    }
     return {
-      title: "Quartier non trouvé | Bars Gay Paris",
-      description: "Ce quartier n'existe pas dans notre annuaire des bars gay de Paris."
+      title: `${quartier.name} - Bars et clubs gay | Bars Gay Paris`,
+      description: `Découvrez les meilleurs bars et établissements LGBT+ dans le ${quartier.name}. Guide complet des spots gay-friendly à Paris.`
+    };
+  } catch {
+    return {
+      title: "Bars Gay Paris",
+      description: "Annuaire des établissements LGBT+ à Paris."
     };
   }
-  
-  return {
-    title: `${quartier.name} - Bars et clubs gay | Bars Gay Paris`,
-    description: `Découvrez les meilleurs bars et établissements LGBT+ dans le ${quartier.name}. Guide complet des spots gay-friendly à Paris.`
-  };
 }
 
 // Générer les params statiques pour les routes
 export async function generateStaticParams() {
-  const quartiers = await getQuartiers();
-  return quartiers.map(quartier => ({
-    quartier: quartier.id,
-  }));
+  try {
+    const quartiers = await getQuartiers();
+    return quartiers.map(quartier => ({
+      quartier: quartier.id,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export const revalidate = 3600; // Revalider toutes les heures
 
 export default async function QuartierDetailPage({ params }: QuartierPageProps) {
   const { quartier: quartierId } = params;
-  
-  // Récupérer les données
-  const quartiers = await getQuartiers();
+
+  let quartiers = [];
+  let allBars = [];
+  try {
+    quartiers = await getQuartiers();
+  } catch {
+    notFound();
+  }
   const quartier = quartiers.find(q => q.id === quartierId);
-  
-  // Vérifier si le quartier existe
   if (!quartier) {
     notFound();
   }
-  
+
   // Récupérer les bars de ce quartier
-  const allBars = await getBars({});
+  try {
+    allBars = await getBars({});
+  } catch {
+    allBars = [];
+  }
   const quartierBars = allBars.filter(bar => {
     // Si nous utilisons un code postal complet (ex: 75001)
     if (quartierId.length === 5) {

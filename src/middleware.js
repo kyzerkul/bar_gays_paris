@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 
+const PRERENDER_TOKEN = process.env.PRERENDER_TOKEN || "Br9K1KSx3MZuF6fp5Oyz";
+const PRERENDER_TIMEOUT_MS = 4000;
+
 export async function middleware(request) {
 
   const userAgent = request.headers.get("user-agent");
 
-    const bots = [
+  const bots = [
     "googlebot",
     "yahoo! slurp",
     "bingbot",
@@ -45,7 +48,7 @@ export async function middleware(request) {
     "Perplexity",
     "ClaudeBot",
     "Amazonbot",
-    "integration-test", // Integration testing
+    "integration-test",
   ];
 
   const IGNORE_EXTENSIONS = [
@@ -67,7 +70,6 @@ export async function middleware(request) {
     ".rar",
     ".exe",
     ".wmv",
-    ".doc",
     ".avi",
     ".ppt",
     ".mpg",
@@ -92,8 +94,9 @@ export async function middleware(request) {
     ".svg",
     ".webmanifest",
   ];
+
   const isBot =
-    userAgent && bots.some((bot) => userAgent.toLowerCase().includes(bot));
+    userAgent && bots.some((bot) => userAgent.toLowerCase().includes(bot.toLowerCase()));
   const isPrerender = request.headers.get("X-Prerender");
   const pathname = new URL(request.url).pathname;
   const extension = pathname.slice(((pathname.lastIndexOf(".") - 1) >>> 0) + 1);
@@ -104,45 +107,46 @@ export async function middleware(request) {
     (extension.length && IGNORE_EXTENSIONS.includes(extension))
   ) {
     return NextResponse.next();
-  } else {
-    // Check if request is coming from a bot
-    if (isBot) {
-      const newURL = `http://service.prerender.io/${request.url}`;
-      const newHeaders = new Headers(request.headers);
-      newHeaders.set("X-Prerender-Token", "Br9K1KSx3MZuF6fp5Oyz");
-      newHeaders.set("X-Prerender-Int-Type", "NextJS");
+  }
 
-    
-      try {
-        const res = await fetch(new Request(newURL, {
-          headers: newHeaders,
-          redirect: "manual",
-        }));
-    
-    
-        const responseHeaders = new Headers(res.headers);
-        responseHeaders.set("X-Redirected-From", request.url);
-    
-        // Create a ReadableStream from the response body
-        const { readable, writable } = new TransformStream();
-        res.body.pipeTo(writable);
-    
-        const response = new NextResponse(readable, {
-          status: res.status,
-          statusText: res.statusText,
-          headers: responseHeaders,
-        });
-    
-  
-        return response;
-      } catch (error) {
-        
-        return NextResponse.next();
-      }
-    } else {
-      console.log('Not a bot, proceeding normally');
+  const newURL = `http://service.prerender.io/${request.url}`;
+  const newHeaders = new Headers(request.headers);
+  newHeaders.set("X-Prerender-Token", PRERENDER_TOKEN);
+  newHeaders.set("X-Prerender-Int-Type", "NextJS");
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), PRERENDER_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(new Request(newURL, {
+      headers: newHeaders,
+      redirect: "manual",
+      signal: controller.signal,
+    }));
+    clearTimeout(timeoutId);
+
+    // Si prerender.io retourne une erreur, servir la page normalement
+    if (res.status >= 400) {
+      return NextResponse.next();
     }
-    
+
+    const responseHeaders = new Headers(res.headers);
+    responseHeaders.set("X-Redirected-From", request.url);
+
+    const { readable, writable } = new TransformStream();
+    res.body.pipeTo(writable).catch(() => {});
+
+    return new NextResponse(readable, {
+      status: res.status,
+      statusText: res.statusText,
+      headers: responseHeaders,
+    });
+  } catch (error) {
+    clearTimeout(timeoutId);
     return NextResponse.next();
   }
 }
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|api/).*)'],
+};

@@ -48,46 +48,58 @@ import { notFound } from 'next/navigation';
 
 // Types
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  // Destructurer le slug pour éviter l'erreur d'utilisation synchrone
   const { slug } = params;
-  const bar = await getBarBySlug(slug);
-  
-  if (!bar) {
+  try {
+    const bar = await getBarBySlug(slug);
+    if (!bar) {
+      return {
+        title: 'Bar non trouvé | Bars Gay Paris',
+        description: "La page demandée n'a pas été trouvée."
+      };
+    }
     return {
-      title: 'Bar non trouvé | Bars Gay Paris',
-      description: 'La page demandée n\'a pas été trouvée.'
+      title: `${bar.name} | Bars Gay Paris`,
+      description: bar.seo_description || bar.description || `Découvrez ${bar.name}, un établissement LGBT+ à Paris. Adresse, horaires, et ambiance.`
+    };
+  } catch {
+    return {
+      title: 'Bars Gay Paris',
+      description: 'Annuaire des établissements LGBT+ à Paris.'
     };
   }
-  
-  return {
-    title: `${bar.name} | Bars Gay Paris`,
-    description: bar.seo_description || bar.description || `Découvrez ${bar.name}, un établissement LGBT+ à Paris. Adresse, horaires, et ambiance.`
-  };
 }
 
 export default async function BarDetailPage({ params }: { params: { slug: string } }) {
   // Construire l'URL complète pour le SEO
   const fullUrl = `https://bars-gay-paris.fr/bars/${params.slug}`;
   
-  // Destructurer le slug pour éviter l'erreur d'utilisation synchrone
   const { slug } = params;
-  const bar = await getBarBySlug(slug);
-  
+  let bar;
+  try {
+    bar = await getBarBySlug(slug);
+  } catch {
+    notFound();
+  }
   if (!bar) {
     notFound();
   }
-  
+
   // Formatter les données pour l'affichage
   const address = bar.full_address || `${bar.address || ''} ${bar.postal_code || ''} Paris`;
   const barTypes = bar.subtypes?.split(',').map((t: string) => t.trim()) || [];
-  
+
   // Récupérer des bars similaires
-  const similarBars = await getSimilarBars({
-    barId: bar.id,
-    types: barTypes,
-    postalCode: bar.postal_code,
-    limit: 3
-  });
+  let similarBars = [];
+  try {
+    similarBars = await getSimilarBars({
+      barId: bar.id,
+      types: barTypes,
+      postalCode: bar.postal_code,
+      limit: 3
+    });
+  } catch {
+    similarBars = [];
+  }
   const mainType = barTypes[0] || 'Bar';
   
   // Pour la carte
@@ -145,11 +157,6 @@ export default async function BarDetailPage({ params }: { params: { slug: string
   // Convertir de 0-6 (dimanche-samedi) à 0-6 (lundi-dimanche)
   const staticToday = now.getDay() === 0 ? 6 : now.getDay() - 1; // 0 = lundi, 6 = dimanche
   
-  // Débogage - afficher le contenu de working_hours pour comprendre sa structure
-  console.log('Bar details:', bar.name, bar.slug);
-  console.log('Working hours type:', typeof bar.working_hours);
-  console.log('Working hours content:', bar.working_hours);
-  
   // Extraction des horaires à partir du format JSON ou de l'objet
   let parsedHours: Record<string, string> = {};
   let todayHours = 'Non précisé';
@@ -181,11 +188,8 @@ export default async function BarDetailPage({ params }: { params: { slug: string
         }
       }
       
-      console.log('Parsed hours:', parsedHours);
-      
       // Déterminer l'horaire d'aujourd'hui
       const todayName = daysMap[staticToday];
-      console.log('Today name:', todayName);
       
       // Chercher avec le nom exact, pas besoin de variantes puisque les jours sont en français dans la base
       // et nous utilisons maintenant des noms de jours en français

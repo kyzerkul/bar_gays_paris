@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalider toutes les heures
 
 export async function GET() {
