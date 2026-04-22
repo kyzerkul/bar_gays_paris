@@ -16,8 +16,8 @@ interface QuartierPageProps {
 }
 
 // Générer les métadonnées de la page
-export async function generateMetadata({ params }: QuartierPageProps) {
-  const { quartier: quartierId } = params;
+export async function generateMetadata({ params }: { params: Promise<{ quartier: string }> }) {
+  const { quartier: quartierId } = await params;
   try {
     const quartiers = await getQuartiers();
     const quartier = quartiers.find(q => q.id === quartierId);
@@ -39,6 +39,7 @@ export async function generateMetadata({ params }: QuartierPageProps) {
   }
 }
 
+// Suppression de l'interface QuartierPageProps (remplacée par le type inline avec Promise)
 // Générer les params statiques pour les routes
 export async function generateStaticParams() {
   try {
@@ -53,8 +54,8 @@ export async function generateStaticParams() {
 
 export const revalidate = 3600; // Revalider toutes les heures
 
-export default async function QuartierDetailPage({ params }: QuartierPageProps) {
-  const { quartier: quartierId } = params;
+export default async function QuartierDetailPage({ params }: { params: Promise<{ quartier: string }> }) {
+  const { quartier: quartierId } = await params;
 
   let quartiers = [];
   let allBars = [];

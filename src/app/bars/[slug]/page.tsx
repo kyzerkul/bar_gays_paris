@@ -47,8 +47,8 @@ import { getBarBySlug, getSimilarBars } from '@/lib/supabase/client';
 import { notFound } from 'next/navigation';
 
 // Types
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   try {
     const bar = await getBarBySlug(slug);
     if (!bar) {
@@ -69,11 +69,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function BarDetailPage({ params }: { params: { slug: string } }) {
+export default async function BarDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   // Construire l'URL complète pour le SEO
-  const fullUrl = `https://bars-gay-paris.fr/bars/${params.slug}`;
-  
-  const { slug } = params;
+  const fullUrl = `https://bars-gay-paris.fr/bars/${slug}`;
   let bar;
   try {
     bar = await getBarBySlug(slug);

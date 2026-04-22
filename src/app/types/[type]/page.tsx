@@ -8,11 +8,12 @@ import { getBars, getTypes } from '@/lib/supabase/client';
 import { notFound } from 'next/navigation';
 
 // Génération des métadonnées dynamiques pour le référencement
-export async function generateMetadata({ params }: { params: { type: string } }) {
-  const decodedType = decodeURIComponent(params.type);
+export async function generateMetadata({ params }: { params: Promise<{ type: string }> }) {
+  const { type: rawType } = await params;
+  const decodedType = decodeURIComponent(rawType);
   try {
     const types = await getTypes();
-    const typeExists = types.some(t => t.id === params.type);
+    const typeExists = types.some(t => t.id === rawType);
     if (!typeExists) {
       return {
         title: "Type non trouvé | Bars Gay Paris",
@@ -31,18 +32,12 @@ export async function generateMetadata({ params }: { params: { type: string } })
   }
 }
 
-// Types pour la pagination
-type PageProps = {
-  params: {
-    type: string;
-  };
-  searchParams?: {
-    page?: string;
-  };
-};
-
-export default async function TypePage({ params, searchParams = {} }: PageProps) {
-  const { type: encodedType } = params;
+export default async function TypePage({ params, searchParams = {} }: {
+  params: Promise<{ type: string }>;
+  searchParams?: Promise<{ page?: string }> | { page?: string };
+}) {
+  const { type: encodedType } = await params;
+  const resolvedSearch = searchParams instanceof Promise ? await searchParams : (searchParams ?? {});
   const type = decodeURIComponent(encodedType);
 
   let types = [];
@@ -51,13 +46,13 @@ export default async function TypePage({ params, searchParams = {} }: PageProps)
   } catch {
     notFound();
   }
-  const typeExists = types.some(t => t.id === type);
+  const typeExists = types.some(t => t.id === encodedType);
   if (!typeExists) {
     notFound();
   }
 
   // Récupération des paramètres pour la pagination
-  const currentPage = Number(searchParams.page) || 1;
+  const currentPage = Number(resolvedSearch.page) || 1;
   const pageSize = 12;
   const skip = (currentPage - 1) * pageSize;
 

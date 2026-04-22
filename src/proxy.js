@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const PRERENDER_TOKEN = process.env.PRERENDER_TOKEN || "Br9K1KSx3MZuF6fp5Oyz";
 const PRERENDER_TIMEOUT_MS = 4000;
 
-export async function middleware(request) {
+export async function proxy(request) {
 
   const userAgent = request.headers.get("user-agent");
 
