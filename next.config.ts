@@ -9,10 +9,15 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 86400, // 24h (pas 1 an — risque de cacher des erreurs)
     remotePatterns: [
+      // Google user photos (lh3, lh4, lh5, lh6, etc.)
+      { protocol: 'https', hostname: '*.googleusercontent.com' },
+      // Google Street View
+      { protocol: 'https', hostname: '*.googleapis.com' },
+      // Supabase Storage (images blog)
+      { protocol: 'https', hostname: '*.supabase.co' },
+      // Placeholders et Unsplash
       { protocol: 'https', hostname: 'placehold.co' },
-      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
       { protocol: 'https', hostname: 'source.unsplash.com' },
-      { protocol: 'https', hostname: 'streetviewpixels-pa.googleapis.com' },
     ],
   },
   compress: true,
