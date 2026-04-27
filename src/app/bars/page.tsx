@@ -15,23 +15,24 @@ export const metadata = {
 
 // Types pour la pagination et les filtres
 type PageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     page?: string;
     quartier?: string;
     type?: string;
-    q?: string; // Paramètre de recherche
-  };
+    q?: string;
+  }>;
 };
 
 export default async function BarsPage({ searchParams }: PageProps) {
   // Construire l'URL de base pour le SEO
   const baseUrl = 'https://bars-gay-paris.fr';
-  
-  // Récupération des paramètres de l'URL
-  const currentPage = Number(searchParams?.page) || 1;
-  const quartier = searchParams?.quartier || '';
-  const type = searchParams?.type || '';
-  const searchQuery = searchParams?.q || '';
+
+  // searchParams est une Promise en Next.js 15/16
+  const sp = await (searchParams ?? Promise.resolve({}));
+  const currentPage = Number(sp.page) || 1;
+  const quartier = sp.quartier || '';
+  const type = sp.type || '';
+  const searchQuery = sp.q || '';
   
   // Paramètres de pagination
   const pageSize = 12;
